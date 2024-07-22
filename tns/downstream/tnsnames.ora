@@ -1,0 +1,19 @@
+SOURCE_XE =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = source-db)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = XE)
+    )
+  )
+
+SOURCE_XEPDB1 =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = source-db)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = XEPDB1)
+    )
+  )

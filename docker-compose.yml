@@ -1,0 +1,125 @@
+version: '3.8'
+services:
+  # gg-oracle:
+  #   container_name: gg-oracle
+  #   image: gg-oracle:21.4.0.0.0
+  #   privileged: true
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile_Oracle
+  #     args:                         
+  #       INSTALLER: 213000_fbo_ggs_Linux_x64_Oracle_services_shiphome.zip
+  #   environment:
+  #     OGG_ADMIN: oggadmin
+  #     OGG_ADMIN_PWD: Admin@11
+  #   volumes:
+  #     - ogg_ora_u01:/u01/ogg/scripts
+  #     - ogg_ora_u02:/u02
+  #     - ogg_ora_u03:/u03
+  #   ports:
+  #     - 9021:9011
+  #     - 9022:9012
+  #     - 9023:9013
+  #     - 9024:9014
+  #     - 9025:9015
+  #   networks:
+  #     - gg-network
+
+  # gg-big-data:
+  #   container_name: gg-big-data
+  #   image: gg-big-data:21.4.0.0.0
+  #   privileged: true
+  #   build:
+  #     context: .
+  #     args:                         
+  #       INSTALLER: 214000_ggs_Linux_x64_BigData_services_shiphome.zip
+  #   environment:
+  #     OGG_ADMIN: oggadmin
+  #     OGG_ADMIN_PWD: Admin@11
+  #   volumes:
+  #     - ogg_bd_u01:/u01/ogg/scripts
+  #     - ogg_bd_u02:/u02
+  #     - ogg_bd_u03:/u03
+  #   ports:
+  #     - 9011:9011
+  #     - 9012:9012
+  #     - 9013:9013
+  #     - 9014:9014
+  #     - 9015:9015
+  #   networks:
+  #     - gg-network
+  
+  source-db:
+    container_name: source-db
+    image: container-registry.oracle.com/database/express:21.3.0-xe
+    environment:
+      ORACLE_PWD: Admin11
+    volumes:
+      - source_db_data:/opt/oracle/oradata
+      - ./init_script:/opt/oracle/scripts/startup
+      # - ./tns/source/tnsnames.ora:/opt/oracle/homes/OraDBHome21cXE/network/admin/tnsnames.ora
+    ports:
+      - 1521:1521
+    networks:
+      - gg-network
+
+  downstream-db:
+    container_name: downstream-db
+    image: gvenzl/oracle-xe
+    environment:
+      ORACLE_PWD: Admin11
+      ORACLE_PASSWORD: Admin11
+    volumes:
+      - downstream_db_data:/opt2/oracle/oradata
+      - ./downstream_init_scripts:/opt/oracle/scripts/startup
+      # - ./tns/downstream/tnsnames.ora:/opt/oracle/homes/OraDBHome21cXE/network/admin/tnsnames.ora
+    ports:
+      - 1522:1521
+    networks:
+      - gg-network
+    # depends_on:
+    #   - source-db
+
+  # target-db:
+  #   container_name: target-db
+  #   image: mongo:5.0.17
+  #   restart: always
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: admin
+  #     MONGO_INITDB_ROOT_PASSWORD: Admin11
+  #   volumes:
+  #     - mongo_data:/data/db
+  #   ports:
+  #     - 27017:27017
+  #   networks:
+  #     - gg-network
+
+  # mongo-express:
+  #   container_name: mongo-express
+  #   image: mongo-express:0.54
+  #   restart: always
+  #   ports:
+  #     - 8081:8081
+  #   environment:
+  #     ME_CONFIG_MONGODB_SERVER: target-db
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: Admin11
+  #     ME_CONFIG_BASICAUTH: false
+  #   depends_on:
+  #     - target-db
+  #   networks:
+  #     - gg-network
+
+volumes:
+  ogg_ora_u01:
+  ogg_ora_u02:
+  ogg_ora_u03:
+  ogg_bd_u01:
+  ogg_bd_u02:
+  ogg_bd_u03:
+  source_db_data:
+  downstream_db_data:
+  mongo_data:
+
+networks:
+  gg-network:
