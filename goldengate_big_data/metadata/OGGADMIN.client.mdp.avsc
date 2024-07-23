@@ -1,0 +1,11 @@
+{
+"namespace": "OGGADMIN",
+"type": "record",
+"name": "client",
+"fields": [
+     {"name": "CLIENT_ID",  "type": "long", "primary_key":true}, 
+     {"name": "NAME", "type": "string"}, 
+     {"name": "SURNAME", "type": "string"}, 
+     {"name": "EMAIL", "type": ["string","null"]}
+   ]
+}

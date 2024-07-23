@@ -248,5 +248,6 @@ cd /u01/ogg/opt/DependencyDownloader
 sh mongodb.sh 3.12.14
 sh kafka.sh 3.4.1
 
+cp -r /tmp/big_data_init_script/metadata/ /u02/metadata/
 run_user_scripts "${OGG_DEPLOYMENT_SCRIPTS}/startup"
 wait

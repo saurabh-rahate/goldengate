@@ -23,6 +23,7 @@ RUN           bash -c  /tmp/install-prerequisites.sh && \
 COPY          nginx/            /etc/nginx/
 COPY          ./goldengate_big_data/kafka-producer.properties        /u01/ogg/kafka/
 COPY          ./goldengate_big_data/extract_configs/       /tmp/big_data_init_script/extract_configs/
+COPY          ./goldengate_big_data/metadata/ /tmp/big_data_init_script/metadata/
 COPY          ./goldengate_big_data/big_data_init_script/ /u01/ogg/scripts/startup/big_data_init_script/
 
 EXPOSE        80 443
