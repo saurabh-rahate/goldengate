@@ -1,0 +1,3 @@
+FROM container-registry.oracle.com/database/express:latest
+
+COPY ./source_db/source_db_init_script/ /opt/oracle/scripts/startup/

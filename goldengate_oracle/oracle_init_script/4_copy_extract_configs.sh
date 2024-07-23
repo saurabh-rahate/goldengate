@@ -1,0 +1,1 @@
+cp /tmp/oracle_init_script/extract_configs/* /u02/Deployment/etc/conf/ogg/

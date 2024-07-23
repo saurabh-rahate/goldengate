@@ -1,0 +1,1 @@
+/u01/ogg/bin/adminclient < /u01/ogg/scripts/startup/oracle_init_script/commands/start_extracts_retain.txt

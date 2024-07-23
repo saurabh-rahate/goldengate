@@ -1,0 +1,45 @@
+#!/bin/bash
+## Copyright (c) 2021, Oracle and/or its affiliates.
+
+##
+##  h e a l t h c h e c k
+##  Check the health of all services in the deployment.
+##
+
+declare -A Ports=([nginx]=80
+                  [ServiceManager]=9011
+                  [adminsrvr]=9012
+                  [distsrvr]=9011
+                  [recvsrvr]=9014
+                  [pmsrvr]=9015)
+
+function service_healthy() {
+    local serviceName="${1}" health healthy
+    pgrep "${serviceName}" &>/dev/null || return 1
+    health="$(curl -sf "http://127.0.0.1:${Ports[$serviceName}]}/services/v2/config/health/check")" || return 1
+    healthy="$(echo "${health}" | jq -r .response.healthy)" || return 1
+    [[ "${healthy}" == "true" ]]
+}
+
+function deployment_healthy() {
+    for key in "${!Ports[@]}"; do
+        service_healthy "${key}" || return 1
+    done
+}
+
+jar_files=("mongodb_3.12.14/mongo-java-driver-3.12.14.jar" "kafka_3.4.1/kafka-clients-3.4.1.jar")
+
+function target_jars_downloaded() {
+    for jar_file in "${jar_files[@]}"; do
+        if [[ ! -f "/u01/ogg/opt/DependencyDownloader/dependencies/$jar_file" ]]; then
+            echo "ERROR: Missing JAR file: $jar_file"
+            exit 1
+        fi
+    done
+    exit 0
+}
+
+[[ -f /tmp/paused ]] || {
+    deployment_healthy
+    target_jars_downloaded
+}

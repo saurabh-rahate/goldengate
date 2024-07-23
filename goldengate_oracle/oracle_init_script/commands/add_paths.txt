@@ -1,0 +1,6 @@
+CONNECT http://localhost:9012 DEPLOYMENT Local AS oggadmin PASSWORD Admin@11
+
+ADD DISTPATH bd_path SOURCE trail://localhost:9023/services/v2/sources?trail=i1 TARGET ws://gg-big-data:9014/services/v2/targets?trail=r1 AUTHENTICATION USERIDALIAS OggNetwork
+START DISTPATH bd_path
+
+DISCONNECT

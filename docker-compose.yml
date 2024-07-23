@@ -1,0 +1,164 @@
+version: '2'
+services:
+  gg-oracle:
+    container_name: gg-oracle
+    image: gg-oracle:1.0.0
+    privileged: true
+    build:
+      context: .
+      dockerfile: ./goldengate_oracle/Dockerfile_Goldengate_Oracle
+      args:                         
+        INSTALLER: ./goldengate_oracle/213000_fbo_ggs_Linux_x64_Oracle_services_shiphome.zip
+    environment:
+      OGG_ADMIN: oggadmin
+      OGG_ADMIN_PWD: Admin@11
+    volumes:
+      - ogg_ora_u01:/u01/ogg/scripts
+      - ogg_ora_u02:/u02
+      - ogg_ora_u03:/u03
+    ports:
+      - 9021:9011
+      - 9022:9012
+      - 9023:9013
+      - 9024:9014
+      - 9025:9015
+    networks:
+      - gg-network
+    depends_on:
+      gg-big-data:
+        condition: "service_healthy"
+      source-db:
+        condition: "service_healthy"
+
+  gg-big-data:
+    container_name: gg-big-data
+    image: gg-big-data:1.0.0
+    privileged: true
+    build:
+      context: .
+      dockerfile: ./goldengate_big_data/Dockerfile_Goldengate_Big_Data
+      args:                         
+        INSTALLER: ./goldengate_big_data/214000_ggs_Linux_x64_BigData_services_shiphome.zip
+    environment:
+      OGG_ADMIN: oggadmin
+      OGG_ADMIN_PWD: Admin@11
+    volumes:
+      - ogg_bd_u01:/u01/ogg/scripts
+      - ogg_bd_u02:/u02
+      - ogg_bd_u03:/u03
+    ports:
+      - 9011:9011
+      - 9012:9012
+      - 9013:9013
+      - 9014:9014
+      - 9015:9015
+    networks:
+      - gg-network
+  
+  source-db:
+    container_name: source-db
+    image: source-db:1.0.0
+    build:
+      context: .
+      dockerfile: ./source_db/Dockerfile_Souce_Db
+    environment:
+      ORACLE_PWD: Admin11
+    volumes:
+      - source_db_data:/opt/oracle/oradata
+    ports:
+      - 1521:1521
+      - 5500:5500
+    networks:
+      - gg-network
+
+  target-db:
+    container_name: target-db
+    image: mongo:5.0.17
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: Admin11
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - 27017:27017
+    networks:
+      - gg-network
+
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express:0.54
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_SERVER: target-db
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: Admin11
+      ME_CONFIG_BASICAUTH: false
+    depends_on:
+      - target-db
+    networks:
+      - gg-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.4
+    container_name: zookeeper
+    hostname: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 2181:2181
+    networks:
+      - gg-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.4
+    container_name: kafka
+    hostname: kafka
+    ports:
+      - 9092:9092
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      TOPIC_AUTO_CREATE: true
+    depends_on:
+      - zookeeper
+    networks:
+      - gg-network
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:v0.7.2
+    restart: always
+    ports:
+      - "8050:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    depends_on:
+      - zookeeper
+      - kafka
+    networks:
+      - gg-network
+
+volumes:
+  ogg_ora_u01:
+  ogg_ora_u02:
+  ogg_ora_u03:
+  ogg_bd_u01:
+  ogg_bd_u02:
+  ogg_bd_u03:
+  source_db_data:
+  mongo_data:
+
+networks:
+  gg-network:

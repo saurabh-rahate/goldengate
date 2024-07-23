@@ -1,0 +1,4 @@
+EXTRACT INIT_EXT
+USERIDALIAS source_db DOMAIN OracleGoldenGate
+ExtFile i2 Megabytes 2000 Purge
+Table *.*;

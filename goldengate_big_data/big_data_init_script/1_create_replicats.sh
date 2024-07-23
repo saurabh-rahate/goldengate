@@ -1,0 +1,1 @@
+/u01/ogg/bin/adminclient < /u01/ogg/scripts/startup/big_data_init_script/commands/create_replicats.txt

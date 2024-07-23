@@ -1,0 +1,2 @@
+REPLICAT MONGO_RP
+MAP *.*, TARGET *.*;

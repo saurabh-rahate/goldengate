@@ -1,0 +1,2 @@
+REPLICAT KAFKA_RP
+MAP *.*, TARGET *.*;

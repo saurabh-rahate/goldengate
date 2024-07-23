@@ -1,0 +1,1 @@
+find /u01/ogg/scripts/startup/big_data_init_script -type f ! -name "*_retain*" -exec rm {} +

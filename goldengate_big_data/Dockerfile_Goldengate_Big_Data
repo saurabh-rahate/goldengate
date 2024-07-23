@@ -1,0 +1,32 @@
+## Copyright (c) 2021, oracle and/or its affiliates.
+ARG           BASE_IMAGE=oraclelinux:8
+#  hadolint ignore=DL3006
+FROM        ${BASE_IMAGE}
+
+ARG           INSTALLER
+RUN           : ${INSTALLER:?}
+
+ENV           OGG_HOME               "/u01/ogg"
+ENV           OGG_DEPLOYMENT_HOME    "/u02"
+ENV           OGG_TEMPORARY_FILES    "/u03"
+ENV           OGG_DEPLOYMENT_SCRIPTS "/u01/ogg/scripts"
+ENV           PATH                   "${OGG_HOME}/bin:${PATH}"
+
+COPY          install-*.sh      /tmp/
+COPY          ${INSTALLER}      /tmp/installer.zip
+COPY          bin/              /usr/local/bin/
+
+RUN           bash -c  /tmp/install-prerequisites.sh && \
+              bash -c  /tmp/install-deployment.sh    && \
+              rm   -fr /tmp/*   /etc/nginx
+
+COPY          nginx/            /etc/nginx/
+COPY          ./goldengate_big_data/kafka-producer.properties        /u01/ogg/kafka/
+COPY          ./goldengate_big_data/extract_configs/       /tmp/big_data_init_script/extract_configs/
+COPY          ./goldengate_big_data/big_data_init_script/ /u01/ogg/scripts/startup/big_data_init_script/
+
+EXPOSE        80 443
+VOLUME      [ "${OGG_DEPLOYMENT_HOME}", "${OGG_TEMPORARY_FILES}", "${OGG_DEPLOYMENT_SCRIPTS}" ]
+HEALTHCHECK   --interval=10s --timeout=8s --start-period=30s --retries=24 \
+        CMD [ "/usr/local/bin/healthcheck-big-data" ]
+ENTRYPOINT  [ "/usr/local/bin/deployment-main-big-data.sh" ]
