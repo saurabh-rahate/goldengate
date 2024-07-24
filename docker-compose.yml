@@ -52,12 +52,15 @@ services:
   source-db:
     container_name: source-db
     image: container-registry.oracle.com/database/express:21.3.0-xe
+    # depends_on:
+    #   downstream-db:
+    #     condition: service_healthy
     environment:
       ORACLE_PWD: Admin11
     volumes:
       - source_db_data:/opt/oracle/oradata
       - ./init_script:/opt/oracle/scripts/startup
-      # - ./tns/source/tnsnames.ora:/opt/oracle/homes/OraDBHome21cXE/network/admin/tnsnames.ora
+      - ./tns/source/tnsnames.ora:/opt/oracle/homes/OraDBHome21cXE/network/admin/tnsnames.ora
     ports:
       - 1521:1521
     networks:
@@ -65,14 +68,15 @@ services:
 
   downstream-db:
     container_name: downstream-db
-    image: gvenzl/oracle-xe
+    image: container-registry.oracle.com/database/express:21.3.0-xe
     environment:
       ORACLE_PWD: Admin11
-      ORACLE_PASSWORD: Admin11
+      # ORACLE_PASSWORD: Admin11
     volumes:
       - downstream_db_data:/opt2/oracle/oradata
       - ./downstream_init_scripts:/opt/oracle/scripts/startup
-      # - ./tns/downstream/tnsnames.ora:/opt/oracle/homes/OraDBHome21cXE/network/admin/tnsnames.ora
+      - ./tns/downstream/tnsnames.ora:/opt/oracle/homes/OraDBHome21cXE/network/admin/tnsnames.ora
+      - ./init_files/initdownstreamdb.ora:/opt/oracle/homes/OraDBHome21cXE/dbs/initdownstreamdb.ora
     ports:
       - 1522:1521
     networks:
